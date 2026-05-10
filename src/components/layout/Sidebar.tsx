@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, FileText, ClipboardList, ShoppingCart,
   Users, Layers, Truck, Settings, ChevronRight,
-  BarChart3, Receipt, ArrowDownLeft, ArrowUpRight,
+  BarChart3, Receipt, ArrowDownLeft, ArrowUpRight, LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +51,13 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <aside className="flex h-screen w-[220px] shrink-0 flex-col border-r border-white/[0.07] bg-sidebar overflow-y-auto">
@@ -88,8 +95,8 @@ export function Sidebar() {
         </div>
       </nav>
 
-      {/* Settings al pie */}
-      <div className="mt-auto border-t border-white/[0.07] px-2 py-3">
+      {/* Settings + Logout al pie */}
+      <div className="mt-auto border-t border-white/[0.07] px-2 py-3 space-y-0.5">
         <Link
           href="/settings"
           className={cn(
@@ -102,6 +109,13 @@ export function Sidebar() {
           <Settings className="h-[15px] w-[15px]" />
           <span>Configuración</span>
         </Link>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 rounded-xl px-3 py-[7px] text-[13px] font-medium text-muted-foreground hover:bg-white/[0.06] hover:text-red-400 transition-all duration-150"
+        >
+          <LogOut className="h-[15px] w-[15px]" />
+          <span>Cerrar sesión</span>
+        </button>
       </div>
     </aside>
   );
