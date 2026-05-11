@@ -1,9 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Pencil, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { StatusChanger } from "@/components/documents/StatusChanger";
 import { formatCLP } from "@/lib/utils/format";
+import { QuotePdf } from "@/components/pdf/QuotePdf";
+import { downloadAsPdf } from "@/lib/pdf/download";
+import { mockCompany } from "@/lib/pdf/mockCompany";
 
 const mockQuote = {
   id: 1, number: "COT-0044", client: "Inmobiliaria Sur SpA",
@@ -18,9 +23,48 @@ const mockQuote = {
 };
 
 export default function QuoteDetailPage() {
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const net   = mockQuote.items.reduce((s, i) => s + i.quantity * i.unitPrice * (1 - i.discount / 100), 0);
   const iva   = Math.round(net * 0.19);
   const total = net + iva;
+
+  async function handlePdf() {
+    setIsGenerating(true);
+    try {
+      await downloadAsPdf(
+        <QuotePdf
+          company={mockCompany}
+          quote={{
+            quoteNumber: mockQuote.number,
+            issueDate: mockQuote.date,
+            validityDate: mockQuote.validity,
+            client: {
+              name: mockQuote.client,
+              rut: mockQuote.clientRut,
+              contact: mockQuote.clientContact,
+              email: mockQuote.clientEmail,
+            },
+            lines: mockQuote.items.map((item, i) => ({
+              position: i + 1,
+              description: item.description,
+              unit: item.unit,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              discount: item.discount,
+              lineTotal: item.quantity * item.unitPrice * (1 - item.discount / 100),
+            })),
+            netAmount: net,
+            observations: mockQuote.notes,
+            termsAndConditions: mockQuote.terms,
+          }}
+        />,
+        `${mockQuote.number}.pdf`
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   return (
     <div className="max-w-4xl space-y-5">
@@ -34,10 +78,13 @@ export default function QuoteDetailPage() {
             <Pencil className="h-3.5 w-3.5" />
             Editar
           </ButtonLink>
-          <ButtonLink href="#" variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]">
+          <Button
+            variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]"
+            onClick={handlePdf} disabled={isGenerating}
+          >
             <Download className="h-3.5 w-3.5" />
-            PDF
-          </ButtonLink>
+            {isGenerating ? "Generando..." : "PDF"}
+          </Button>
         </div>
       </div>
 

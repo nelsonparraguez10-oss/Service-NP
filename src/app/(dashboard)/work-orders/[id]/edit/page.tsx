@@ -5,6 +5,9 @@ import { ArrowLeft, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { SaveButton } from "@/components/ui/save-button";
+import { WorkOrderPdf } from "@/components/pdf/WorkOrderPdf";
+import { downloadAsPdf } from "@/lib/pdf/download";
+import { mockCompany } from "@/lib/pdf/mockCompany";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +47,44 @@ export default function EditWorkOrderPage() {
   const [notes,       setNotes]       = useState(mockWO.notes);
 
   const net = calcNetFromLines(items);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  async function handlePdf() {
+    setIsGenerating(true);
+    try {
+      await downloadAsPdf(
+        <WorkOrderPdf
+          company={mockCompany}
+          wo={{
+            woNumber: mockWO.number,
+            quoteRef: mockWO.quoteRef,
+            requestDate: mockWO.requestDate,
+            serviceDate: serviceDate,
+            client: { name: client, rut: "" },
+            resources: {
+              operators: operator ? [operator] : [],
+              vehicles: vehicle ? [vehicle] : [],
+              equipment: [],
+            },
+            lines: items.map((item, i) => ({
+              position: i + 1,
+              description: item.description,
+              unit: item.unit,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              discount: item.discount,
+              lineTotal: item.quantity * item.unitPrice * (1 - item.discount / 100),
+            })),
+            netAmount: net,
+            salesObservations: notes || undefined,
+          }}
+        />,
+        `${mockWO.number}.pdf`
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   function validate() {
     const e: FieldErrors = {};
@@ -69,9 +110,11 @@ export default function EditWorkOrderPage() {
           Órdenes de Trabajo
         </ButtonLink>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]">
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]"
+            onClick={handlePdf} disabled={isGenerating}
+          >
             <Download className="h-3.5 w-3.5" />
-            Exportar PDF
+            {isGenerating ? "Generando..." : "Exportar PDF"}
           </Button>
           <SaveButton status={status} onClick={() => trigger(validate)} />
         </div>

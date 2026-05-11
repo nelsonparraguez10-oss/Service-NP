@@ -1,9 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Pencil, Download, Paperclip } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { StatusChanger } from "@/components/documents/StatusChanger";
 import { formatCLP } from "@/lib/utils/format";
+import { PurchaseOrderPdf } from "@/components/pdf/PurchaseOrderPdf";
+import { downloadAsPdf } from "@/lib/pdf/download";
+import { mockCompany } from "@/lib/pdf/mockCompany";
 
 const mockPO = {
   id: 1, number: "OC-0012", woRef: "OT-0088",
@@ -19,9 +24,43 @@ const mockPO = {
 };
 
 export default function PurchaseOrderDetailPage() {
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const net   = mockPO.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
   const iva   = Math.round(net * 0.19);
   const total = net + iva;
+
+  async function handlePdf() {
+    setIsGenerating(true);
+    try {
+      await downloadAsPdf(
+        <PurchaseOrderPdf
+          company={mockCompany}
+          po={{
+            poNumber: mockPO.number,
+            issueDate: mockPO.issueDate,
+            deliveryDate: mockPO.deliveryDate,
+            currency: "CLP",
+            supplier: { name: mockPO.supplier, rut: mockPO.supplierRut },
+            billing: { name: mockCompany.legalName, rut: mockCompany.rut, address: mockCompany.address },
+            lines: mockPO.items.map((item, i) => ({
+              position: i + 1,
+              description: item.description,
+              unit: item.unit,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              lineTotal: item.quantity * item.unitPrice,
+            })),
+            netAmount: net,
+            notes: mockPO.notes,
+          }}
+        />,
+        `${mockPO.number}.pdf`
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   return (
     <div className="max-w-4xl space-y-5">
@@ -34,10 +73,13 @@ export default function PurchaseOrderDetailPage() {
             <Pencil className="h-3.5 w-3.5" />
             Editar
           </ButtonLink>
-          <ButtonLink href="#" variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]">
+          <Button
+            variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]"
+            onClick={handlePdf} disabled={isGenerating}
+          >
             <Download className="h-3.5 w-3.5" />
-            PDF
-          </ButtonLink>
+            {isGenerating ? "Generando..." : "PDF"}
+          </Button>
         </div>
       </div>
 

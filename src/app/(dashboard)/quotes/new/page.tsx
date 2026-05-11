@@ -13,14 +13,54 @@ import { calcNetFromLines } from "@/lib/utils/format";
 import { Separator } from "@/components/ui/separator";
 import { ContactCombobox } from "@/components/ui/contact-combobox";
 import { clients } from "@/lib/data/contacts";
+import { QuotePdf } from "@/components/pdf/QuotePdf";
+import { downloadAsPdf } from "@/lib/pdf/download";
+import { mockCompany } from "@/lib/pdf/mockCompany";
 
 export default function NewQuotePage() {
+  const [isGenerating, setIsGenerating] = useState(false);
   const [client, setClient] = useState("");
+  const [date,     setDate]     = useState(new Date().toISOString().slice(0, 10));
+  const [validity, setValidity] = useState("");
+  const [notes,    setNotes]    = useState("");
+  const [terms,    setTerms]    = useState("");
   const [items, setItems] = useState<LineItem[]>([
     { id: crypto.randomUUID(), description: "", unit: "UN", quantity: 1, unitPrice: 0, discount: 0 },
   ]);
 
   const net = calcNetFromLines(items);
+
+  async function handlePdf() {
+    setIsGenerating(true);
+    try {
+      await downloadAsPdf(
+        <QuotePdf
+          company={mockCompany}
+          quote={{
+            quoteNumber: "BORRADOR",
+            issueDate: date,
+            validityDate: validity || undefined,
+            client: { name: client || "—", rut: "" },
+            lines: items.map((item, i) => ({
+              position: i + 1,
+              description: item.description,
+              unit: item.unit,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              discount: item.discount,
+              lineTotal: item.quantity * item.unitPrice * (1 - item.discount / 100),
+            })),
+            netAmount: net,
+            observations: notes || undefined,
+            termsAndConditions: terms || undefined,
+          }}
+        />,
+        "COT-BORRADOR.pdf"
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -30,9 +70,11 @@ export default function NewQuotePage() {
           Cotizaciones
         </ButtonLink>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]">
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]"
+            onClick={handlePdf} disabled={isGenerating}
+          >
             <Download className="h-3.5 w-3.5" />
-            Exportar PDF
+            {isGenerating ? "Generando..." : "Exportar PDF"}
           </Button>
           <Button size="sm" className="h-8 gap-1.5 text-[12px]">
             <Send className="h-3.5 w-3.5" />
@@ -69,11 +111,11 @@ export default function NewQuotePage() {
           </div>
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Fecha emisión</Label>
-            <Input type="date" className="h-9 text-[13px]" defaultValue={new Date().toISOString().slice(0, 10)} />
+            <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Válido hasta</Label>
-            <Input type="date" className="h-9 text-[13px]" />
+            <Input type="date" value={validity} onChange={e => setValidity(e.target.value)} className="h-9 text-[13px]" />
           </div>
         </div>
 
@@ -94,6 +136,7 @@ export default function NewQuotePage() {
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Observaciones</Label>
             <Textarea
+              value={notes} onChange={e => setNotes(e.target.value)}
               placeholder="Tareas de mantención, condiciones especiales..."
               className="text-[13px] min-h-[80px] resize-none"
             />
@@ -101,6 +144,7 @@ export default function NewQuotePage() {
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Términos y condiciones</Label>
             <Textarea
+              value={terms} onChange={e => setTerms(e.target.value)}
               placeholder="Forma de pago, condiciones de servicio..."
               className="text-[13px] min-h-[80px] resize-none"
             />

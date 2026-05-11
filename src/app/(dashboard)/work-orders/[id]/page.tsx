@@ -1,9 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Pencil, Download, User, Truck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { StatusChanger } from "@/components/documents/StatusChanger";
 import { formatCLP } from "@/lib/utils/format";
+import { WorkOrderPdf } from "@/components/pdf/WorkOrderPdf";
+import { downloadAsPdf } from "@/lib/pdf/download";
+import { mockCompany } from "@/lib/pdf/mockCompany";
 
 const mockWO = {
   id: 1, number: "OT-0088", quoteRef: "COT-0043",
@@ -19,9 +24,48 @@ const mockWO = {
 };
 
 export default function WorkOrderDetailPage() {
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const net   = mockWO.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
   const iva   = Math.round(net * 0.19);
   const total = net + iva;
+
+  async function handlePdf() {
+    setIsGenerating(true);
+    try {
+      await downloadAsPdf(
+        <WorkOrderPdf
+          company={mockCompany}
+          wo={{
+            woNumber: mockWO.number,
+            quoteRef: mockWO.quoteRef,
+            requestDate: mockWO.requestDate,
+            serviceDate: mockWO.serviceDate,
+            client: { name: mockWO.client, rut: mockWO.clientRut },
+            resources: {
+              operators: [mockWO.operator],
+              vehicles: [mockWO.vehicle],
+              equipment: [],
+            },
+            lines: mockWO.items.map((item, i) => ({
+              position: i + 1,
+              description: item.description,
+              unit: item.unit,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              discount: item.discount,
+              lineTotal: item.quantity * item.unitPrice * (1 - item.discount / 100),
+            })),
+            netAmount: net,
+            salesObservations: mockWO.notes,
+          }}
+        />,
+        `${mockWO.number}.pdf`
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   return (
     <div className="max-w-4xl space-y-5">
@@ -34,10 +78,13 @@ export default function WorkOrderDetailPage() {
             <Pencil className="h-3.5 w-3.5" />
             Editar
           </ButtonLink>
-          <ButtonLink href="#" variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]">
+          <Button
+            variant="outline" size="sm" className="h-8 gap-1.5 text-[12px]"
+            onClick={handlePdf} disabled={isGenerating}
+          >
             <Download className="h-3.5 w-3.5" />
-            PDF
-          </ButtonLink>
+            {isGenerating ? "Generando..." : "PDF"}
+          </Button>
         </div>
       </div>
 
