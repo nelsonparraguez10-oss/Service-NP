@@ -16,6 +16,8 @@ import { StatusBadge } from "@/components/documents/StatusBadge";
 import { calcNetFromLines } from "@/lib/utils/format";
 import { useSave } from "@/lib/hooks/useSave";
 import { required, validDate, dateAfter, type FieldErrors } from "@/lib/utils/validate";
+import { ContactCombobox } from "@/components/ui/contact-combobox";
+import { suppliers } from "@/lib/data/contacts";
 
 const mockPO = {
   number: "OC-0011", woRef: "OT-0087", supplier: "Transportes Flores",
@@ -29,7 +31,6 @@ const mockPO = {
   ] satisfies LineItem[],
 };
 
-const suppliers = ["Transportes Flores", "Proveedor Químicos Sur", "Ferretería Industrial S.A.", "Suministros Mineros Ltda."];
 
 export default function EditPurchaseOrderPage() {
   const { status, trigger } = useSave();
@@ -91,11 +92,13 @@ export default function EditPurchaseOrderPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="col-span-2 space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Proveedor <Req /></Label>
-            <select value={supplier} onChange={e => { setSupplier(e.target.value); clearError("supplier"); }}
-              className={`h-9 w-full rounded-md border bg-transparent px-3 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-ring ${errors.supplier ? "border-red-400/50" : "border-input"}`}>
-              <option value="">— Seleccionar —</option>
-              {suppliers.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <ContactCombobox
+              options={suppliers}
+              value={supplier}
+              onChange={v => { setSupplier(v); clearError("supplier"); }}
+              placeholder="Buscar proveedor..."
+              hasError={!!errors.supplier}
+            />
             <FieldError msg={errors.supplier} />
           </div>
           <div className="space-y-1.5">

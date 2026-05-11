@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useSave } from "@/lib/hooks/useSave";
 import { required, validEmail, validRut, type FieldErrors } from "@/lib/utils/validate";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from "@/components/ui/select";
 
 type ResourceType   = "operator" | "vehicle" | "equipment";
 type ResourceStatus = "available" | "busy";
@@ -103,11 +104,13 @@ export default function EditResourcePage() {
           </div>
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Estado</Label>
-            <select value={resStatus} onChange={e => setResStatus(e.target.value as ResourceStatus)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-ring">
-              <option value="available">Disponible</option>
-              <option value="busy">Ocupado</option>
-            </select>
+            <Select value={resStatus} onValueChange={v => setResStatus((v ?? resStatus) as ResourceStatus)}>
+              <SelectTrigger className="h-9 w-full text-[13px]"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectGroup>
+                <SelectItem value="available">Disponible</SelectItem>
+                <SelectItem value="busy">Ocupado</SelectItem>
+              </SelectGroup></SelectContent>
+            </Select>
           </div>
 
           {type === "operator" && (<>

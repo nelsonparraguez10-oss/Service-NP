@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useSave } from "@/lib/hooks/useSave";
 import { required, validAmount, validDate, type FieldErrors } from "@/lib/utils/validate";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from "@/components/ui/select";
 
 type ExpenseType     = "fixed" | "variable";
 type ExpenseCategory = "rent" | "salaries" | "utilities" | "materials" | "subcontracts" | "transport" | "tools" | "other";
@@ -91,10 +92,12 @@ export default function NewExpensePage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Categoría</Label>
-            <select value={category} onChange={e => setCategory(e.target.value as ExpenseCategory)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-ring">
-              {filteredCategories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
+            <Select value={category} onValueChange={v => setCategory((v ?? category) as ExpenseCategory)}>
+              <SelectTrigger className="h-9 w-full text-[13px]"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectGroup>
+                {filteredCategories.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectGroup></SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Fecha <Req /></Label>

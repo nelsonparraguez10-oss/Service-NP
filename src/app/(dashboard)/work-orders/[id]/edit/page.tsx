@@ -16,6 +16,7 @@ import { StatusBadge } from "@/components/documents/StatusBadge";
 import { calcNetFromLines } from "@/lib/utils/format";
 import { useSave } from "@/lib/hooks/useSave";
 import { required, validDate, type FieldErrors } from "@/lib/utils/validate";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from "@/components/ui/select";
 
 const mockWO = {
   number: "OT-0087", quoteRef: "COT-0041", client: "Inmobiliaria Sur",
@@ -113,20 +114,26 @@ export default function EditWorkOrderPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Operario <Req /></Label>
-              <select value={operator} onChange={e => { setOperator(e.target.value); clearError("operator"); }}
-                className={`h-9 w-full rounded-md border bg-transparent px-3 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-ring ${errors.operator ? "border-red-400/50" : "border-input"}`}>
-                <option value="">— Seleccionar —</option>
-                {operators.map(op => <option key={op} value={op}>{op}</option>)}
-              </select>
+              <Select value={operator} onValueChange={v => { setOperator(v ?? ""); clearError("operator"); }}>
+                <SelectTrigger className={`h-9 w-full text-[13px] ${errors.operator ? "border-red-400/50" : ""}`}>
+                  <SelectValue placeholder="— Seleccionar —" />
+                </SelectTrigger>
+                <SelectContent><SelectGroup>
+                  {operators.map(op => <SelectItem key={op} value={op}>{op}</SelectItem>)}
+                </SelectGroup></SelectContent>
+              </Select>
               <FieldError msg={errors.operator} />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Vehículo <Req /></Label>
-              <select value={vehicle} onChange={e => { setVehicle(e.target.value); clearError("vehicle"); }}
-                className={`h-9 w-full rounded-md border bg-transparent px-3 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-ring ${errors.vehicle ? "border-red-400/50" : "border-input"}`}>
-                <option value="">— Seleccionar —</option>
-                {vehicles.map(v => <option key={v} value={v}>{v}</option>)}
-              </select>
+              <Select value={vehicle} onValueChange={v => { setVehicle(v ?? ""); clearError("vehicle"); }}>
+                <SelectTrigger className={`h-9 w-full text-[13px] ${errors.vehicle ? "border-red-400/50" : ""}`}>
+                  <SelectValue placeholder="— Seleccionar —" />
+                </SelectTrigger>
+                <SelectContent><SelectGroup>
+                  {vehicles.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                </SelectGroup></SelectContent>
+              </Select>
               <FieldError msg={errors.vehicle} />
             </div>
           </div>

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useSave } from "@/lib/hooks/useSave";
 import { required, validEmail, validRut, type FieldErrors } from "@/lib/utils/validate";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from "@/components/ui/select";
 
 type ContactType = "client" | "supplier" | "both";
 
@@ -144,12 +145,14 @@ export default function NewContactPage() {
           <h3 className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Condiciones comerciales</h3>
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Forma de pago</Label>
-            <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-ring">
-              {["Contado", "Transferencia", "Crédito 30 días", "Crédito 60 días", "Cheque"].map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
+            <Select value={paymentMethod} onValueChange={v => setPaymentMethod(v ?? "Contado")}>
+              <SelectTrigger className="h-9 w-full text-[13px]"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectGroup>
+                {["Contado", "Transferencia", "Crédito 30 días", "Crédito 60 días", "Cheque"].map(m => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectGroup></SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Notas internas</Label>
