@@ -11,8 +11,11 @@ import { LineItemsTable, type LineItem } from "@/components/documents/LineItemsT
 import { TotalsBlock } from "@/components/documents/TotalsBlock";
 import { calcNetFromLines } from "@/lib/utils/format";
 import { Separator } from "@/components/ui/separator";
+import { ContactCombobox } from "@/components/ui/contact-combobox";
+import { clients } from "@/lib/data/contacts";
 
 export default function NewQuotePage() {
+  const [client, setClient] = useState("");
   const [items, setItems] = useState<LineItem[]>([
     { id: crypto.randomUUID(), description: "", unit: "UN", quantity: 1, unitPrice: 0, discount: 0 },
   ]);
@@ -57,7 +60,12 @@ export default function NewQuotePage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="col-span-2 space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Cliente</Label>
-            <Input placeholder="Seleccionar cliente..." className="h-9 text-[13px]" />
+            <ContactCombobox
+              options={clients}
+              value={client}
+              onChange={setClient}
+              placeholder="Buscar cliente..."
+            />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Fecha emisión</Label>

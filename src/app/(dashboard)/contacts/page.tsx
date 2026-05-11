@@ -1,18 +1,7 @@
 import { Plus, Building2, User, Pencil } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const clients = [
-  { id: 1, name: "Constructora ABC Ltda.", rut: "76.543.210-K", contact: "Juan Pérez", email: "jperez@abc.cl", phone: "+56 9 1234 5678", paymentMethod: "Transferencia", district: "Santiago" },
-  { id: 2, name: "Inmobiliaria Sur SpA", rut: "77.123.456-3", contact: "María González", email: "mgonzalez@sur.cl", phone: "+56 9 8765 4321", paymentMethod: "Crédito 30 días", district: "Rancagua" },
-  { id: 3, name: "Minera Norte SA", rut: "90.876.543-2", contact: "Carlos Ríos", email: "crios@nortemina.cl", phone: "+56 9 5555 6666", paymentMethod: "Transferencia", district: "Copiapó" },
-  { id: 4, name: "Municipalidad de Rancagua", rut: "69.190.200-0", contact: "Secretaría", email: "secretaria@muni.cl", phone: "+56 72 222 3333", paymentMethod: "Cheque", district: "Rancagua" },
-];
-
-const suppliers = [
-  { id: 1, name: "Proveedor Químicos Sur", rut: "78.456.789-1", contact: "Luis Morales", email: "lmorales@quimicossur.cl", phone: "+56 9 9999 0000", paymentMethod: "Contado", district: "Santiago" },
-  { id: 2, name: "Transportes Flores", rut: "76.111.222-3", contact: "Ana Flores", email: "aflores@transflores.cl", phone: "+56 9 7777 8888", paymentMethod: "Transferencia", district: "Maipú" },
-];
+import { clients, suppliers } from "@/lib/data/contacts";
 
 function ContactTable({ data }: { data: typeof clients }) {
   return (

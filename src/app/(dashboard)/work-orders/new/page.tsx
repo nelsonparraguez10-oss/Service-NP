@@ -15,6 +15,8 @@ import { TotalsBlock } from "@/components/documents/TotalsBlock";
 import { calcNetFromLines } from "@/lib/utils/format";
 import { useSave } from "@/lib/hooks/useSave";
 import { required, validDate, type FieldErrors } from "@/lib/utils/validate";
+import { ContactCombobox } from "@/components/ui/contact-combobox";
+import { clients } from "@/lib/data/contacts";
 
 const operators = ["Carlos Mendoza", "Pedro Soto", "Jorge Vidal"];
 const vehicles  = ["BCRZ-14", "FJKP-88"];
@@ -78,9 +80,13 @@ export default function NewWorkOrderPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="col-span-2 space-y-1.5">
             <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Cliente <Req /></Label>
-            <Input value={client} onChange={e => { setClient(e.target.value); clearError("client"); }}
-              placeholder="Seleccionar cliente..."
-              className={`h-9 text-[13px] ${errors.client ? "border-red-400/50" : ""}`} />
+            <ContactCombobox
+              options={clients}
+              value={client}
+              onChange={v => { setClient(v); clearError("client"); }}
+              placeholder="Buscar cliente..."
+              hasError={!!errors.client}
+            />
             <FieldError msg={errors.client} />
           </div>
           <div className="space-y-1.5">
