@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,11 +37,15 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white mb-4">
-            <span className="text-[16px] font-bold text-black tracking-tight">NP</span>
-          </div>
-          <h1 className="text-[20px] font-semibold text-foreground">Servicios NP</h1>
-          <p className="text-[13px] text-muted-foreground mt-1">Inicia sesión para continuar</p>
+          <Image
+            src="/logo.png"
+            alt="NovAI Engineering"
+            width={200}
+            height={54}
+            className="object-contain mb-4"
+            priority
+          />
+          <p className="text-[13px] text-muted-foreground">Inicia sesión para continuar</p>
         </div>
 
         {/* Card */}

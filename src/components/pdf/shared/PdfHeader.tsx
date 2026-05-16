@@ -1,6 +1,10 @@
-import { View, Text, StyleSheet } from "@react-pdf/renderer";
-import { colors, fonts, shared } from "./styles";
+import { View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { colors, fonts } from "./styles";
 import type { PdfCompanyContext } from "@/lib/services/settings.service";
+
+const LOGO_URL = process.env.NEXT_PUBLIC_APP_URL
+  ? `${process.env.NEXT_PUBLIC_APP_URL}/logo.png`
+  : "https://novai-engineering.vercel.app/logo.png";
 
 const s = StyleSheet.create({
   header: {
@@ -10,17 +14,8 @@ const s = StyleSheet.create({
     marginBottom: 20,
   },
   logo: {
-    width: 36,
-    height: 36,
-    backgroundColor: colors.black,
-    borderRadius: 4,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoText: {
-    color: colors.white,
-    fontFamily: fonts.bold,
-    fontSize: 11,
+    width: 110,
+    height: 30,
   },
   companyBlock: {
     marginLeft: 10,
@@ -62,9 +57,7 @@ export function PdfHeader({ company, docTitle, docNumber }: Props) {
   return (
     <View style={s.header}>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-        <View style={s.logo}>
-          <Text style={s.logoText}>NP</Text>
-        </View>
+        <Image style={s.logo} src={LOGO_URL} />
         <View style={s.companyBlock}>
           <Text style={s.companyName}>{company.legalName}</Text>
           <Text style={s.companyDetail}>RUT {company.rut}</Text>

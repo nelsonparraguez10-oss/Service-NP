@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, FileText, ClipboardList, ShoppingCart,
@@ -62,14 +63,15 @@ export function Sidebar() {
   return (
     <aside className="flex h-screen w-[220px] shrink-0 flex-col border-r border-white/[0.07] bg-sidebar overflow-y-auto">
       {/* Logo */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-white/[0.07] px-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white">
-          <span className="text-[11px] font-bold text-black tracking-tight">NP</span>
-        </div>
-        <div className="flex flex-col leading-tight">
-          <span className="text-[13px] font-semibold text-foreground">Servicios NP</span>
-          <span className="text-[10px] text-muted-foreground">Panel de Gestión</span>
-        </div>
+      <div className="flex h-14 shrink-0 items-center border-b border-white/[0.07] px-4">
+        <Image
+          src="/logo.png"
+          alt="NovAI Engineering"
+          width={148}
+          height={40}
+          className="object-contain"
+          priority
+        />
       </div>
 
       {/* Operaciones */}
