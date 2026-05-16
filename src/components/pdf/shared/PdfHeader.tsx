@@ -52,8 +52,8 @@ interface Props {
 
 export function PdfHeader({ company, docTitle, docNumber }: Props) {
   const logoUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/logo.png`
-    : `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novai-engineering.vercel.app"}/logo.png`;
+    ? `${window.location.origin}/logo.png?v=2`
+    : `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novai-engineering.vercel.app"}/logo.png?v=2`;
 
   return (
     <View style={s.header}>

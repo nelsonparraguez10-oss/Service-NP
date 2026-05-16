@@ -37,7 +37,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="NovAI Engineering" width={200} height={54} style={{ objectFit: "contain", marginBottom: 16 }} />
+          <img src="/logo.png?v=2" alt="NovAI Engineering" width={200} height={54} style={{ objectFit: "contain", marginBottom: 16 }} />
           <p className="text-[13px] text-muted-foreground">Inicia sesión para continuar</p>
         </div>
 
