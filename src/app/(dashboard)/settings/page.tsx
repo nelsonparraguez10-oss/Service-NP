@@ -78,15 +78,20 @@ export default function SettingsPage() {
           phone:        data.phone        ?? "",
         });
         setPdfFooterNote(data.pdfFooterNote ?? "");
-        setBankAccounts((data.bankAccounts ?? []).map((a) => ({
-          id: (a as BankAccount & { id?: string }).id ?? crypto.randomUUID(),
-          bank: a.bank ?? "",
-          accountType: a.accountType ?? "",
-          accountNumber: a.accountNumber ?? "",
-          accountHolder: a.accountHolder ?? "",
-          rut: a.rut ?? "",
-          email: a.email ?? "",
-        })));
+        setBankAccounts(
+          (data.bankAccounts ?? []).map((a) => {
+            const id: string = (a.id as string | undefined) ?? crypto.randomUUID();
+            return {
+              id,
+              bank: a.bank ?? "",
+              accountType: a.accountType ?? "",
+              accountNumber: a.accountNumber ?? "",
+              accountHolder: a.accountHolder ?? "",
+              rut: a.rut ?? "",
+              email: a.email ?? "",
+            };
+          })
+        );
       })
       .catch(() => {})
       .finally(() => setLoading(false));

@@ -20,7 +20,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json(updated);
   } catch (err) {
     if (err instanceof ZodError) {
-      return NextResponse.json({ error: "Datos inválidos", details: err.errors }, { status: 422 });
+      return NextResponse.json({ error: "Datos inválidos", details: err.issues }, { status: 422 });
     }
     return NextResponse.json({ error: "Error al guardar" }, { status: 500 });
   }
