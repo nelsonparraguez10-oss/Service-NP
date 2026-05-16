@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 const SESSION_COOKIE = "snp_session";
 const PUBLIC_PREFIXES = ["/login", "/api/auth"];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
