@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,14 +36,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <Image
-            src="/logo.png"
-            alt="NovAI Engineering"
-            width={200}
-            height={54}
-            className="object-contain mb-4"
-            priority
-          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="NovAI Engineering" width={200} height={54} style={{ objectFit: "contain", marginBottom: 16 }} />
           <p className="text-[13px] text-muted-foreground">Inicia sesión para continuar</p>
         </div>
 

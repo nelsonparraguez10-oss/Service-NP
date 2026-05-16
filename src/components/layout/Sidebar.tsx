@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, FileText, ClipboardList, ShoppingCart,
@@ -64,14 +63,8 @@ export function Sidebar() {
     <aside className="flex h-screen w-[220px] shrink-0 flex-col border-r border-white/[0.07] bg-sidebar overflow-y-auto">
       {/* Logo */}
       <div className="flex h-14 shrink-0 items-center border-b border-white/[0.07] px-4">
-        <Image
-          src="/logo.png"
-          alt="NovAI Engineering"
-          width={148}
-          height={40}
-          className="object-contain"
-          priority
-        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="NovAI Engineering" width={148} height={40} style={{ objectFit: "contain" }} />
       </div>
 
       {/* Operaciones */}
