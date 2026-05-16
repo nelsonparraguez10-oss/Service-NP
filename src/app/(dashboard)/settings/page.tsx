@@ -78,7 +78,15 @@ export default function SettingsPage() {
           phone:        data.phone        ?? "",
         });
         setPdfFooterNote(data.pdfFooterNote ?? "");
-        setBankAccounts((data.bankAccounts ?? []).map((a: BankAccount) => ({ ...a, id: a.id ?? crypto.randomUUID() })));
+        setBankAccounts((data.bankAccounts ?? []).map((a) => ({
+          id: (a as BankAccount & { id?: string }).id ?? crypto.randomUUID(),
+          bank: a.bank ?? "",
+          accountType: a.accountType ?? "",
+          accountNumber: a.accountNumber ?? "",
+          accountHolder: a.accountHolder ?? "",
+          rut: a.rut ?? "",
+          email: a.email ?? "",
+        })));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
