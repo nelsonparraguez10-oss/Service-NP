@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import type { CompanySettings } from "@/lib/validations/settings.schema";
 
 interface BankAccount {
   id: string; bank: string; accountType: string;
@@ -66,7 +65,7 @@ export default function SettingsPage() {
   useEffect(() => {
     fetch("/api/settings")
       .then(r => r.json())
-      .then((data: CompanySettings) => {
+      .then((data: any) => {
         setCompany({
           legalName:    data.legalName    ?? "",
           rut:          data.rut          ?? "",
@@ -79,7 +78,7 @@ export default function SettingsPage() {
         });
         setPdfFooterNote(data.pdfFooterNote ?? "");
         setBankAccounts(
-          (data.bankAccounts ?? []).map((a) => {
+          (data.bankAccounts ?? []).map((a: any) => {
             const id: string = (a.id as string | undefined) ?? crypto.randomUUID();
             return {
               id,
