@@ -10,8 +10,9 @@ const s = StyleSheet.create({
     marginBottom: 20,
   },
   logo: {
-    width: 110,
-    height: 30,
+    width: 130,
+    height: 36,
+    objectFit: "contain",
   },
   companyBlock: {
     marginLeft: 10,

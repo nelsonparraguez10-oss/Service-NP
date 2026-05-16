@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, Save, Building2, CreditCard, FileText, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import type { CompanySettings } from "@/lib/validations/settings.schema";
 
 interface BankAccount {
   id: string; bank: string; accountType: string;
@@ -40,40 +41,115 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export default function SettingsPage() {
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([
-    { id: "1", bank: "Mercado Pago",    accountType: "Cuenta Vista",    accountNumber: "123456789", accountHolder: "Servicios NP SpA", rut: "76.543.210-K", email: "pagos@serviciosnp.cl" },
-    { id: "2", bank: "Banco Santander", accountType: "Cuenta Corriente",accountNumber: "987654321", accountHolder: "Servicios NP SpA", rut: "76.543.210-K", email: "pagos@serviciosnp.cl" },
-  ]);
+function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {
+  return (
+    <Button size="sm" className="h-8 gap-1.5 text-[12px]" onClick={onClick} disabled={saving}>
+      <Save className="h-3.5 w-3.5" />
+      {saving ? "Guardando..." : "Guardar"}
+    </Button>
+  );
+}
 
+export default function SettingsPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
+
+  const [company, setCompany] = useState({
+    legalName: "", rut: "", address: "", district: "",
+    region: "", businessLine: "", email: "", phone: "",
+  });
+  const [pdfFooterNote, setPdfFooterNote] = useState("");
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [thresholds, setThresholds] = useState<ProfitabilityThresholds>({ green: 30, yellow: 15 });
 
-  function addAccount() {
-    setBankAccounts([...bankAccounts, { id: crypto.randomUUID(), bank: "", accountType: "", accountNumber: "", accountHolder: "", rut: "", email: "" }]);
+  useEffect(() => {
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then((data: CompanySettings) => {
+        setCompany({
+          legalName:    data.legalName    ?? "",
+          rut:          data.rut          ?? "",
+          address:      data.address      ?? "",
+          district:     data.district     ?? "",
+          region:       data.region       ?? "",
+          businessLine: data.businessLine ?? "",
+          email:        data.email        ?? "",
+          phone:        data.phone        ?? "",
+        });
+        setPdfFooterNote(data.pdfFooterNote ?? "");
+        setBankAccounts((data.bankAccounts ?? []).map((a: BankAccount) => ({ ...a, id: a.id ?? crypto.randomUUID() })));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  function showToast(type: "ok" | "err", msg: string) {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3000);
   }
-  function removeAccount(id: string) { setBankAccounts(bankAccounts.filter(a => a.id !== id)); }
+
+  async function save(extra?: Partial<typeof company & { pdfFooterNote: string; bankAccounts: BankAccount[] }>) {
+    setSaving(true);
+    try {
+      const payload = {
+        ...company,
+        pdfFooterNote,
+        bankAccounts: bankAccounts.map(({ id: _id, ...rest }) => rest),
+        ...extra,
+      };
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error();
+      showToast("ok", "Configuración guardada");
+    } catch {
+      showToast("err", "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function addAccount() {
+    setBankAccounts(prev => [...prev, { id: crypto.randomUUID(), bank: "", accountType: "", accountNumber: "", accountHolder: "", rut: "", email: "" }]);
+  }
+  function removeAccount(id: string) { setBankAccounts(prev => prev.filter(a => a.id !== id)); }
   function updateAccount(id: string, field: keyof BankAccount, value: string) {
-    setBankAccounts(bankAccounts.map(a => a.id === id ? { ...a, [field]: value } : a));
+    setBankAccounts(prev => prev.map(a => a.id === id ? { ...a, [field]: value } : a));
   }
 
   const redThreshold = thresholds.yellow;
   const marginDemo = [42, 28, 12];
-
   function semaforo(pct: number) {
     if (pct >= thresholds.green)  return "text-emerald-400";
     if (pct >= thresholds.yellow) return "text-amber-400";
     return "text-red-400";
   }
 
+  if (loading) {
+    return <div className="text-[13px] text-muted-foreground">Cargando configuración...</div>;
+  }
+
   return (
     <div className="max-w-3xl space-y-5">
+      {toast && (
+        <div className={cn(
+          "fixed top-4 right-4 z-50 rounded-xl px-4 py-2.5 text-[13px] font-medium shadow-lg",
+          toast.type === "ok" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+        )}>
+          {toast.msg}
+        </div>
+      )}
+
       <Tabs defaultValue="company">
         <TabsList className="h-8 rounded-xl bg-white/[0.05] border border-white/[0.07] p-0.5">
           {[
-            { value: "company",     label: "Empresa",          icon: Building2 },
-            { value: "banking",     label: "Datos bancarios",  icon: CreditCard },
-            { value: "documents",   label: "Documentos",       icon: FileText },
-            { value: "profitability", label: "Rentabilidad",   icon: TrendingUp },
+            { value: "company",       label: "Empresa",         icon: Building2 },
+            { value: "banking",       label: "Datos bancarios", icon: CreditCard },
+            { value: "documents",     label: "Documentos",      icon: FileText },
+            { value: "profitability", label: "Rentabilidad",    icon: TrendingUp },
           ].map(({ value, label, icon: Icon }) => (
             <TabsTrigger key={value} value={value}
               className="h-7 gap-1.5 text-[12px] rounded-lg data-[state=active]:bg-white/[0.10] data-[state=active]:text-foreground text-muted-foreground">
@@ -89,21 +165,43 @@ export default function SettingsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <Field label="Razón Social">
-                  <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" defaultValue="Servicios NP SpA" />
+                  <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]"
+                    value={company.legalName} onChange={e => setCompany(c => ({ ...c, legalName: e.target.value }))} />
                 </Field>
               </div>
-              <Field label="RUT"><Input className="h-9 text-[13px] font-mono bg-white/[0.04] border-white/[0.08]" defaultValue="76.543.210-K" /></Field>
-              <Field label="Giro"><Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" defaultValue="Servicios de Higienización y Sanitización" /></Field>
+              <Field label="RUT">
+                <Input className="h-9 text-[13px] font-mono bg-white/[0.04] border-white/[0.08]"
+                  value={company.rut} onChange={e => setCompany(c => ({ ...c, rut: e.target.value }))} />
+              </Field>
+              <Field label="Giro">
+                <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]"
+                  value={company.businessLine} onChange={e => setCompany(c => ({ ...c, businessLine: e.target.value }))} />
+              </Field>
               <div className="col-span-2">
-                <Field label="Dirección"><Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" defaultValue="Av. Principal 1234" /></Field>
+                <Field label="Dirección">
+                  <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]"
+                    value={company.address} onChange={e => setCompany(c => ({ ...c, address: e.target.value }))} />
+                </Field>
               </div>
-              <Field label="Comuna"><Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" defaultValue="Rancagua" /></Field>
-              <Field label="Región"><Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" defaultValue="O'Higgins" /></Field>
-              <Field label="Email"><Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" type="email" defaultValue="contacto@serviciosnp.cl" /></Field>
-              <Field label="Teléfono"><Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" defaultValue="+56 72 222 3333" /></Field>
+              <Field label="Comuna">
+                <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]"
+                  value={company.district} onChange={e => setCompany(c => ({ ...c, district: e.target.value }))} />
+              </Field>
+              <Field label="Región">
+                <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]"
+                  value={company.region} onChange={e => setCompany(c => ({ ...c, region: e.target.value }))} />
+              </Field>
+              <Field label="Email">
+                <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" type="email"
+                  value={company.email} onChange={e => setCompany(c => ({ ...c, email: e.target.value }))} />
+              </Field>
+              <Field label="Teléfono">
+                <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]"
+                  value={company.phone} onChange={e => setCompany(c => ({ ...c, phone: e.target.value }))} />
+              </Field>
             </div>
             <div className="flex justify-end pt-1">
-              <Button size="sm" className="h-8 gap-1.5 text-[12px]"><Save className="h-3.5 w-3.5" />Guardar</Button>
+              <SaveButton saving={saving} onClick={() => save()} />
             </div>
           </div>
         </TabsContent>
@@ -146,7 +244,7 @@ export default function SettingsPage() {
               ))}
             </div>
             <div className="flex justify-end">
-              <Button size="sm" className="h-8 gap-1.5 text-[12px]"><Save className="h-3.5 w-3.5" />Guardar</Button>
+              <SaveButton saving={saving} onClick={() => save()} />
             </div>
           </div>
         </TabsContent>
@@ -154,27 +252,15 @@ export default function SettingsPage() {
         {/* ─── Documentos ─── */}
         <TabsContent value="documents" className="mt-5">
           <div className="rounded-2xl border border-white/[0.07] bg-card p-6 space-y-5">
-            <SectionTitle>Configuración de PDFs y numeración</SectionTitle>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Validez por defecto (días)">
-                <Input className="h-9 text-[13px] bg-white/[0.04] border-white/[0.08]" type="number" defaultValue="14" />
-              </Field>
-              {[["Cotizaciones", "COT-"], ["Órdenes de Trabajo", "OT-"], ["Órdenes de Compra", "OC-"], ["Facturas", "FAC-"]].map(([label, val]) => (
-                <Field key={label} label={`Prefijo ${label}`}>
-                  <Input className="h-9 text-[13px] font-mono bg-white/[0.04] border-white/[0.08]" defaultValue={val} />
-                </Field>
-              ))}
-            </div>
+            <SectionTitle>Configuración de PDFs</SectionTitle>
             <Field label="Nota al pie (aparece en todos los PDFs)">
               <Textarea className="text-[13px] min-h-[70px] resize-none bg-white/[0.04] border-white/[0.08]"
-                defaultValue="Para transferencias, indicar N° documento en el asunto." />
-            </Field>
-            <Field label="Términos y condiciones por defecto">
-              <Textarea className="text-[13px] min-h-[80px] resize-none bg-white/[0.04] border-white/[0.08]"
-                defaultValue="Pago al contado o según condiciones acordadas. Presupuesto válido por 14 días." />
+                value={pdfFooterNote}
+                onChange={e => setPdfFooterNote(e.target.value)}
+              />
             </Field>
             <div className="flex justify-end">
-              <Button size="sm" className="h-8 gap-1.5 text-[12px]"><Save className="h-3.5 w-3.5" />Guardar</Button>
+              <SaveButton saving={saving} onClick={() => save()} />
             </div>
           </div>
         </TabsContent>
@@ -188,7 +274,6 @@ export default function SettingsPage() {
                 Define los porcentajes de margen neto que clasifican cada OT como rentable, en riesgo o crítica.
               </p>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4 space-y-2">
                 <div className="flex items-center gap-2">
@@ -197,16 +282,12 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-[11px] text-muted-foreground">Margen ≥ este valor</p>
                 <div className="flex items-center gap-2">
-                  <Input
-                    type="number" min={0} max={100}
-                    value={thresholds.green}
+                  <Input type="number" min={0} max={100} value={thresholds.green}
                     onChange={e => setThresholds(t => ({ ...t, green: parseInt(e.target.value) || 0 }))}
-                    className="h-9 w-24 text-[14px] font-semibold text-center bg-white/[0.06] border-emerald-500/20"
-                  />
+                    className="h-9 w-24 text-[14px] font-semibold text-center bg-white/[0.06] border-emerald-500/20" />
                   <span className="text-[13px] text-muted-foreground">%</span>
                 </div>
               </div>
-
               <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.05] p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-amber-400" />
@@ -214,16 +295,12 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-[11px] text-muted-foreground">Margen ≥ este valor y &lt; verde</p>
                 <div className="flex items-center gap-2">
-                  <Input
-                    type="number" min={0} max={100}
-                    value={thresholds.yellow}
+                  <Input type="number" min={0} max={100} value={thresholds.yellow}
                     onChange={e => setThresholds(t => ({ ...t, yellow: parseInt(e.target.value) || 0 }))}
-                    className="h-9 w-24 text-[14px] font-semibold text-center bg-white/[0.06] border-amber-500/20"
-                  />
+                    className="h-9 w-24 text-[14px] font-semibold text-center bg-white/[0.06] border-amber-500/20" />
                   <span className="text-[13px] text-muted-foreground">%</span>
                 </div>
               </div>
-
               <div className="rounded-xl border border-red-500/20 bg-red-500/[0.05] p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-red-400" />
@@ -234,8 +311,6 @@ export default function SettingsPage() {
                   <span className="text-[14px] font-semibold text-red-400">&lt; {redThreshold}%</span>
                 </div>
               </div>
-
-              {/* Preview */}
               <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4 space-y-3">
                 <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vista previa</p>
                 {marginDemo.map((m) => (
@@ -251,13 +326,8 @@ export default function SettingsPage() {
                 ))}
               </div>
             </div>
-
-            <div className="flex justify-end pt-1">
-              <Button size="sm" className="h-8 gap-1.5 text-[12px]"><Save className="h-3.5 w-3.5" />Guardar umbrales</Button>
-            </div>
           </div>
 
-          {/* Categorías de gastos */}
           <div className="rounded-2xl border border-white/[0.07] bg-card p-6 space-y-4">
             <SectionTitle>Categorías de gastos</SectionTitle>
             <div className="grid grid-cols-2 gap-3">
