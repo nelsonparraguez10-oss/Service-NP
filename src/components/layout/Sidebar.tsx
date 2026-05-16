@@ -64,7 +64,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-14 shrink-0 items-center border-b border-white/[0.07] px-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png?v=2" alt="NovAI Engineering" width={148} height={40} style={{ objectFit: "contain" }} />
+        <img src="/logo.png?v=3" alt="NovAI Engineering" width={148} height={40} style={{ objectFit: "contain" }} />
       </div>
 
       {/* Operaciones */}
